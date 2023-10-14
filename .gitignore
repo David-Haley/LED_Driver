@@ -1,0 +1,4 @@
+# Build directory
+build/
+pico_sdk_import.cmake
+Set_Environement.sh
