@@ -1,3 +1,3 @@
 # LED_Driver
-A driver for addressable LED strings (SK8612 or similar)  supporting either 24 or 32 bit colour data data on Pi Pico.
-Uses PIO and as a future development DMA to free up CPU time. Without DMA update calls for strings of 8 or fewer LEDs will not block.
+A driver for addressable LED strings (SK8612 or similar)  supporting 24 colour data data on Pi Pico.
+Uses PIO and DMA to free up CPU time. Calls to Addressable_LED.Update should not block, however it is the programmer's responsibility to ensure that the transfer completes before updating the LEDs. If the strings are updated on a time basis, provided that this time is greater than the time required to transmit the data, this condition iss satisfied.

@@ -4,7 +4,8 @@
 // WS2812 addressable LEDs or similar.
 // Author    : David Haley
 // Created   : 23/10/2021
-// Last Edit : 26/11/2022
+// Last Edit : 22/10/2023
+// 20231022: Provide for DMA transfer to PIO.
 // 20221126: Black and White now static
 // 20220723: Black, White and Set_One added.
 // 20220719: Colour_RGB defined to match WS2811 LED driver.
@@ -12,6 +13,7 @@
 // and Solid added.
 
 #include "hardware/pio.h"
+#include "hardware/dma.h"
 
 static bool PIO_0_Initialised, PIO_1_Initialised = false;
 static uint PIO_0_offset, PIO_1_offset;
@@ -24,7 +26,10 @@ int LED_Count = 0; // Number of LEDs in the strip
 uint32_t *LED_Data = 0; // pointer to array of LED data
 PIO pio; // PIO to be used
 int sm; // state machine within PIO
-int Tx_Pin; 
+int Tx_Pin;
+uint DMA_Channel; // DMA chanel to be assigned to this string driver.
+dma_channel_config DMA_Config;
+// Configeration of the DMA channel assigned to this string driver. 
 
 public:
 
@@ -73,6 +78,7 @@ void Set_One (uint32_t Colour, uint LED_Number);
 // Sets the LED in position LED_Number to Colour
 
 void Update (void);
-// Send the stored LED data to the LED strips
+// Send the stored LED data to the LED strips via DMA transfer, should return
+// almost immedistely.
 
 }; // Addressable_LED

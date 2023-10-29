@@ -15,4 +15,5 @@ pico_generate_pio_header (addressable_led
 
 target_link_libraries(addressable_led
                       pico_stdlib
-                      hardware_pio)
+                      hardware_pio
+                      hardware_dma)
