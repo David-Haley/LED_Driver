@@ -4,8 +4,8 @@
 // WS2812 addressable LEDs or similar.
 // Author    : David Haley
 // Created   : 23/10/2021
-// Last Edit : 22/10/2023
-// 20231022: Provide for DMA transfer to PIO.
+// Last Edit : 03/11/2023
+// 20231103: Provide for DMA transfer to PIO.
 // 20221126: Black and White now static
 // 20220723: Black, White and Set_One added.
 // 20220719: Colour_RGB defined to match WS2811 LED driver.
@@ -24,8 +24,8 @@ private:
 
 int LED_Count = 0; // Number of LEDs in the strip
 uint32_t *LED_Data = 0; // pointer to array of LED data
-PIO pio; // PIO to be used
-int sm; // state machine within PIO
+PIO PIO_Controller; // PIO to be used
+int State_Machine; // state machine within PIO_Controller 0, 1, 2 or 3
 int Tx_Pin;
 uint DMA_Channel; // DMA chanel to be assigned to this string driver.
 dma_channel_config DMA_Config;

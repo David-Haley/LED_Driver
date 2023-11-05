@@ -4,8 +4,8 @@
 // WS2812 addressable LEDs or similar.
 // Author    : David Haley
 // Created   : 23/10/2021
-// Last Edit : 22/10/2023
-// 20231022: Provide for DMA transfer to PIO.
+// Last Edit : 03/11/2023
+// 20231103: Provide for DMA transfer to PIO.
 // 20220723: Black, White and Set_One added.
 // 20211026: One shot initialisation of PIOs implemented, Step_Size
 // and Solid added.
@@ -27,75 +27,85 @@ Addressable_LED :: Addressable_LED (
 	LED_Data = new uint32_t [LED_Count];
 	for (uint I = 0; I < LED_Count; I++)
 		LED_Data [I] = 0;
-	pio = PIO_to_Use;
-	sm = State_Machine_to_Use;
+	PIO_Controller = PIO_to_Use;
+	State_Machine = State_Machine_to_Use;
 	Tx_Pin = Channel;
 	const float Bit_Rate =800000.0; // 800 kHz
         DMA_Channel = dma_claim_unused_channel (true); // Panic if none free
         DMA_Config =  dma_channel_get_default_config (DMA_Channel);
-        dma_channel_get_default_config (DMA_Config, DMA_Size_32);
-        channel_config_set_read_increment (DMA_Config, true);
+        channel_config_set_transfer_data_size (&DMA_Config, DMA_SIZE_32);
+        channel_config_set_read_increment (&DMA_Config, true);
         // step through the blok of LED_Data;
-        channel_config_set_write_increment (DMA_Config, false);
+        channel_config_set_write_increment (&DMA_Config, false);
         // Destination is PIO FIFO, that is, a fixed address
-	if (pio == pio0)
+	if (PIO_Controller == pio0)
 	{ 
 		if (! PIO_0_Initialised)
 		{
 			PIO_0_Initialised = true;
-		    PIO_0_offset = pio_add_program (pio, &ws2812_program);
+		        PIO_0_offset = pio_add_program (PIO_Controller,
+                        &ws2812_program);
 		} // if (! PIO_0_Initialised)
-                ws2812_program_init (pio, sm, PIO_0_offset, Tx_Pin, Bit_Rate,
-                  false); // RGB data only, no white LEDs
+                ws2812_program_init (PIO_Controller,
+                                     State_Machine,
+                                     PIO_0_offset,
+                                     Tx_Pin,
+                                     Bit_Rate,
+                                     false); // RGB data only, no white LEDs
                 switch (State_Machine_to_Use)
                 {
                         case 0:
-                                channel_config_set_dreq	(DMA_Config,
-                                  DREQ_PIO0_TX0);
+                                channel_config_set_dreq	(&DMA_Config,
+                                                         DREQ_PIO0_TX0);
                                 break;
                         case 1:
-                                channel_config_set_dreq	(DMA_Config,
-                                  DREQ_PIO0_TX1);
+                                channel_config_set_dreq	(&DMA_Config,
+                                                         DREQ_PIO0_TX1);
                                 break;
                         case 2:
-                                channel_config_set_dreq	(DMA_Config,
-                                  DREQ_PIO0_TX2);
+                                channel_config_set_dreq	(&DMA_Config,
+                                                         DREQ_PIO0_TX2);
                                 break;
                         case 3:
-                                channel_config_set_dreq	(DMA_Config,
-                                  DREQ_PIO0_TX3;
+                                channel_config_set_dreq	(&DMA_Config,
+                                                         DREQ_PIO0_TX3);
                                 break;
                 } // switch (State_Machine_to_Use)
-	} // if (pio == pio0)
-	else if(pio == pio1)
+	} // if (PIO_Controller == pio0)
+	else if(PIO_Controller == pio1)
 	{
 		if (! PIO_1_Initialised)
 		{
 			PIO_1_Initialised = true;
-		    PIO_1_offset = pio_add_program (pio, &ws2812_program);
+		        PIO_1_offset = pio_add_program (PIO_Controller,
+                                                        &ws2812_program);
 		} // (! PIO_1_Initialised)
-                ws2812_program_init (pio, sm, PIO_1_offset, Tx_Pin, Bit_Rate,
-                  false); // RGB data only, no white LEDs
+                ws2812_program_init (PIO_Controller,
+                                     State_Machine,
+                                     PIO_1_offset,
+                                     Tx_Pin,
+                                     Bit_Rate,
+                                     false); // RGB data only, no white LEDs
                 switch (State_Machine_to_Use)
                 {
                         case 0:
-                                channel_config_set_dreq	(DMA_Config,
-                                  DREQ_PIO1_TX0);
+                                channel_config_set_dreq	(&DMA_Config,
+                                                         DREQ_PIO1_TX0);
                                 break;
                         case 1:
-                                channel_config_set_dreq	(DMA_Config,
+                                channel_config_set_dreq	(&DMA_Config,
                                   DREQ_PIO1_TX1);
                                 break;
                         case 2:
-                                channel_config_set_dreq	(DMA_Config,
+                                channel_config_set_dreq	(&DMA_Config,
                                   DREQ_PIO1_TX2);
                                 break;
                         case 3:
-                                channel_config_set_dreq	(DMA_Config,
-                                  DREQ_PIO1_TX3;
+                                channel_config_set_dreq	(&DMA_Config,
+                                  DREQ_PIO1_TX3);
                                 break;
                 } // switch (State_Machine_to_Use)
-	} // else if(pio == pio1)
+	} // else if(PIO_Controller == pio1)
 } // Addressable_LED
 
 void Addressable_LED :: Rainbow_Serpent (bool Initialise, bool Forward,
@@ -111,8 +121,8 @@ void Addressable_LED :: Rainbow_Serpent (bool Initialise, bool Forward,
 			LED_Data [I] = Colour_Table [(I * Colours) / LED_Count];
 			// for all I < LED_Count 
 			// 0 <= Colour_Table Index <= Colours - 1
-			// This ensures as even as possible distribution of colours
-			// when LED_Count % Colours != 0
+			// This ensures as even as possible distribution of
+                        // colours when LED_Count % Colours != 0
 		} // for (uint I = 0; I < LED_Count; I++)
 	} // if (Initialise)
 	else
@@ -178,22 +188,25 @@ void Addressable_LED :: Update (void)
 // almost immedistely.
 
 {
-	if (pio == pio0)
+	if (PIO_Controller == pio0)
 	{
-                dma_channel_configure (
-                        DMA_Channel,
-                        DMA_Config,
-                        pio0_hw->txf[State_Machine_to_Use], // write address
-                        LED_Data, // read address
-                        true); // start immediately
-        } // if (pio == pio0)
-	else if (pio == pio1)
+                dma_channel_configure (DMA_Channel,
+                                       &DMA_Config,
+                                       &pio0_hw->txf[State_Machine],
+                                       // write address, 
+                                       LED_Data,
+                                       // read address, start of buffer
+                                       LED_Count,
+                                       true); // start immediately
+        } // if (PIO_Controller == pio0)
+	else if (PIO_Controller == pio1)
 	{
-                dma_channel_configure (
-                        DMA_Channel,
-                        DMA_Config,
-                        pio1_hw->txf[State_Machine_to_Use], // write address
-                        LED_Data, // read address
-                        true); // start immediately
-        } // if (pio == pio1)
+                dma_channel_configure (DMA_Channel,
+                                       &DMA_Config,
+                                       &pio1_hw->txf[State_Machine],
+                                       // write address
+                                       LED_Data, // read address
+                                       LED_Count,
+                                       true); // start immediately
+        } // if (PIO_Controller == pio1)
 } // Update
