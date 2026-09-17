@@ -4,7 +4,8 @@
 // WS2812 addressable LEDs or similar.
 // Author    : David Haley
 // Created   : 23/10/2021
-// Last Edit : 03/11/2023
+// Last Edit : 17/09/2026
+// 20260917: Set_One overload with Brightness scaling added.
 // 20231103: Provide for DMA transfer to PIO.
 // 20221126: Black and White now static
 // 20220723: Black, White and Set_One added.
@@ -76,6 +77,12 @@ void Solid (uint32_t Colour);
 
 void Set_One (uint32_t Colour, uint LED_Number);
 // Sets the LED in position LED_Number to Colour
+
+void Set_One (uint32_t Colour, uint LED_Number, unsigned char Brightness);
+// Sets the LED in position LED_Number to Colour with each colour byte
+// linearly scaled by Brightness. Brightness ranges from 2 (dimmest,
+// non-zero colour bytes reduced to their smallest representable value)
+// to 255 (Colour transferred unchanged).
 
 void Update (void);
 // Send the stored LED data to the LED strips via DMA transfer, should return

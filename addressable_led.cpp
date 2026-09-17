@@ -4,7 +4,8 @@
 // WS2812 addressable LEDs or similar.
 // Author    : David Haley
 // Created   : 23/10/2021
-// Last Edit : 03/11/2023
+// Last Edit : 17/09/2026
+// 20260917: Set_One overload with Brightness scaling added.
 // 20231103: Provide for DMA transfer to PIO.
 // 20220723: Black, White and Set_One added.
 // 20211026: One shot initialisation of PIOs implemented, Step_Size
@@ -181,6 +182,24 @@ void Addressable_LED :: Set_One  (uint32_t Colour, uint LED_Number)
 
 {
         LED_Data [LED_Number] = Colour;
+} // Set_One
+
+void Addressable_LED :: Set_One (uint32_t Colour, uint LED_Number,
+	unsigned char Brightness)
+// Sets the LED in position LED_Number to Colour with each colour byte
+// linearly scaled by Brightness (2 = dimmest, 255 = unscaled).
+
+{
+	uint32_t Scaled_Colour = Colour & 0x000000FF;
+	// lowest byte is not a colour byte, passed through unchanged
+	for (uint Shift = 8; Shift <= 24; Shift += 8)
+	{
+		uint32_t Colour_Byte = (Colour >> Shift) & 0xFF;
+		uint32_t Scaled_Byte = (Colour_Byte * Brightness + 127) / 255;
+		// +127 before dividing by 255 rounds to the nearest byte value
+		Scaled_Colour |= Scaled_Byte << Shift;
+	} // for (uint Shift = 8; Shift <= 24; Shift += 8)
+        LED_Data [LED_Number] = Scaled_Colour;
 } // Set_One
 
 void Addressable_LED :: Update (void)
